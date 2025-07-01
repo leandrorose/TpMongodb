@@ -40,14 +40,22 @@ public class ProductoServiceImpl implements ProductoService {
         return productoRepository.findAll().stream().map(productoMapper::toDTO).collect(Collectors.toList());
     }
 
-    @Override
-    public void eliminarProducto(String id) {
-
-    }
+ @Override
+ public void eliminarProducto(String id) {
+     if (productoRepository.existsById(id)) {
+         productoRepository.deleteById(id);
+         // Si se elimina correctamente, simplemente retorna (void)
+         return;
+     } else {
+         throw new RuntimeException("No se encontró el producto con id: " + id);
+     }
+ }
 
     @Override
     public ProductoDTO obtenerProductoPorNombre(String nombre) {
-        return null;
+        return productoRepository.findByNombre(nombre)
+                .map(productoMapper::toDTO)
+                .orElseThrow(() -> new RuntimeException("El producto que busca no existe"));
     }
 
     @Override

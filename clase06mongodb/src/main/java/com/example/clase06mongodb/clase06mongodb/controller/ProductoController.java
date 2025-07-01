@@ -27,4 +27,27 @@ public class ProductoController {
         ProductoDTO productoCreado = productoService.crearProducto(productoDTO);
         return ResponseEntity.ok(productoCreado);
     }
+    @GetMapping("/{id}")
+    public ResponseEntity<ProductoDTO> obtenerPorId(@PathVariable String id) {
+        ProductoDTO producto = productoService.obtenerProductoPorId(id);
+        return ResponseEntity.ok(producto);
+    }
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> eliminarProducto(@PathVariable String id) {
+        productoService.eliminarProducto(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ProductoDTO> actualizarProducto(@PathVariable String id, @RequestBody ProductoDTO productoDTO) {
+        productoDTO.setId(id);
+        ProductoDTO actualizado = productoService.crearProducto(productoDTO); // O implementar un método update específico
+        return ResponseEntity.ok(actualizado);
+    }
+
+    @GetMapping("/buscar/nombre")
+    public ResponseEntity<ProductoDTO> obtenerPorNombre(@RequestParam String nombre) {
+        ProductoDTO producto = productoService.obtenerProductoPorNombre(nombre);
+        return ResponseEntity.ok(producto);
+    }
 }
