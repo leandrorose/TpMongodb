@@ -4,7 +4,10 @@ package com.example.clase06mongodb.clase06mongodb.mapper;
 import com.example.clase06mongodb.clase06mongodb.dto.UserDTO;
 import com.example.clase06mongodb.clase06mongodb.enums.Role;
 import com.example.clase06mongodb.clase06mongodb.model.User;
+
 import org.mapstruct.Mapper;
+import org.springframework.stereotype.Component;
+
 
 import java.util.Set;
 import java.util.stream.Collectors;
