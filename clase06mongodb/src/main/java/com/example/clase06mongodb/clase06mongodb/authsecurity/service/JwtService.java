@@ -1,7 +1,6 @@
 package com.example.clase06mongodb.clase06mongodb.authsecurity.service;
 
 import io.jsonwebtoken.*;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,22 +22,23 @@ public class JwtService {
 
   private Key signingKey;
 
+
   public String generateToken(UserDetails user) {
     return Jwts.builder()
-        .subject(user.getUsername())
-        .claim("roles", user.getAuthorities().stream()
-            .map(auth -> auth.getAuthority())
-            .toList())
-        .issuedAt(new Date())
-        .expiration(new Date(System.currentTimeMillis() + expirationMs))
-        .signWith(getSigningKey(), resolveAlgorithm())
-        .compact();
+            .subject(user.getUsername())
+            .claim("roles", user.getAuthorities().stream()
+                    .map(auth -> auth.getAuthority())
+                    .toList())
+            .issuedAt(new Date())
+            .expiration(new Date(System.currentTimeMillis() + expirationMs))
+            .signWith(getSigningKey(), resolveAlgorithm())
+            .compact();
   }
 
   public boolean isTokenValid(String token, UserDetails user) {
     try {
       return user.getUsername().equals(extractClaim(token, Claims::getSubject)) &&
-          !extractClaim(token, Claims::getExpiration).before(new Date());
+              !extractClaim(token, Claims::getExpiration).before(new Date());
     } catch (JwtException e) {
       return false;
     }
@@ -51,10 +51,10 @@ public class JwtService {
   public <T> T extractClaim(String token, Function<Claims, T> resolver) {
     try {
       return resolver.apply(Jwts.parser()
-          .setSigningKey(getSigningKey())
-          .build()
-          .parseClaimsJws(token)
-          .getBody());
+              .setSigningKey(getSigningKey())
+              .build()
+              .parseClaimsJws(token)
+              .getBody());
     } catch (ExpiredJwtException e) {
       return resolver.apply(e.getClaims());
     }

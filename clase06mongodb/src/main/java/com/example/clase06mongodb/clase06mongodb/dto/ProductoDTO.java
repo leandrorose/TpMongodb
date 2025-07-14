@@ -1,9 +1,8 @@
 package com.example.clase06mongodb.clase06mongodb.dto;
 
-import com.example.clase06mongodb.clase06mongodb.model.Color;
+import com.example.clase06mongodb.clase06mongodb.model.enums.Color;
 import lombok.Data;
 
-import java.awt.*;
 import java.util.Set;
 
 @Data

@@ -2,74 +2,51 @@ package com.example.clase06mongodb.clase06mongodb.controller;
 
 import com.example.clase06mongodb.clase06mongodb.dto.UserDTO;
 import com.example.clase06mongodb.clase06mongodb.service.UserService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
-// user controller
 @RestController
-@Slf4j
-@RequestMapping("/api/v1/users")
-@Tag(name = "Usuarios", description = "Operaciones relacionadas con usuarios internas del sistema")
+@RequestMapping("/api/users")
 @RequiredArgsConstructor
 public class UserController {
+    private final UserService svc;
 
-  private final UserService userService;
+    @PostMapping
+    public UserDTO create(@RequestBody UserDTO dto) {
+        return svc.createUser(dto);
+    }
 
-  @GetMapping
-  @Operation(
-      summary = "Obtener todos los usuarios",
-      description = "Devuelve una lista con todas los usuarios del sistema"
-  )
-  public ResponseEntity<List<UserDTO>> obtenerTodas() {
-    List<UserDTO> lista = userService.getAllUsers();
-    return ResponseEntity.ok(lista);
-  }
+    @GetMapping("/{id}")
+    public UserDTO get(@PathVariable String id) {
+        return svc.getUserById(id);
+    }
 
-  @PostMapping
-  @ApiResponse(responseCode = "201", description = "Usuario creado exitosamente")
-  public ResponseEntity<UserDTO> crear(@RequestBody UserDTO user) {
-    UserDTO creado = userService.createUser(user);
-    return ResponseEntity.status(HttpStatus.CREATED).body(creado);
-  }
+    @GetMapping
+    public List<UserDTO> all() {
+        return svc.getAllUsers();
+    }
 
-  @PutMapping("/{id}")
-  @Operation(
-      summary = "Actualizar usuario",
-      description = "Actualiza los datos de un usuario existente"
-  )
-  @ApiResponses({
-      @ApiResponse(responseCode = "200", description
-          = "Usuario actualizado exitosamente"),
-      @ApiResponse(responseCode = "404",
-          description = "Usuario no encontrado")
-  })
-  public ResponseEntity<UserDTO> actualizar(
-      @PathVariable String id,
-      @RequestBody UserDTO userDTO) {
-    UserDTO actualizado = userService.updateUser(id, userDTO);
-    return ResponseEntity.ok(actualizado);
-  }
+    @PutMapping("/")
+    public UserDTO update( @RequestBody UserDTO dto) {
+        return svc.updateUser( dto);
+    }
 
-  @DeleteMapping("/{id}")
-  @Operation(
-      summary = "Eliminar usuario",
-      description = "Elimina un usuario del sistema"
-  )
-  @ApiResponses({
-      @ApiResponse(responseCode = "204", description = "Usuario eliminado exitosamente"),
-      @ApiResponse(responseCode = "404", description = "Usuario no encontrado")
-  })
-  public ResponseEntity<Void> eliminar(@PathVariable String id) {
-    userService.deleteUser(id);
-    return ResponseEntity.noContent().build();
-  }
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable String id) {
+        svc.deleteUser(id);
+    }
+
+    @GetMapping("/async")
+    public CompletableFuture<List<UserDTO>> getAllUsersAsync() {
+        return svc.getAllUsersAsync();
+    }
+
+    @PostMapping("/process")
+    public String processUsers(@RequestBody List<String> ids) {
+        svc.processUsersByIdList(ids);
+        return "Procesamiento paralelo iniciado para " + ids.size() + " usuarios.";
+    }
 }

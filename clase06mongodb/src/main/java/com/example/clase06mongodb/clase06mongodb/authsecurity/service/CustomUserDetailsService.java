@@ -1,5 +1,6 @@
 package com.example.clase06mongodb.clase06mongodb.authsecurity.service;
 
+
 import com.example.clase06mongodb.clase06mongodb.model.User;
 import com.example.clase06mongodb.clase06mongodb.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +17,7 @@ import org.springframework.stereotype.Service;
 public class CustomUserDetailsService implements UserDetailsService {
 
   private final UserRepository userRepository;
-
+    // MEJORES NO REALIZADA: cualquier usuario loggeado puede hacer sin limites. deberia solo modificar las cosas de su cuenta cada usuario.
   @Override
   public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
     log.debug("Intentando cargar usuario por nombre: {}", username);

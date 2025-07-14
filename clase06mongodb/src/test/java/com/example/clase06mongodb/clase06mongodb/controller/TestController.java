@@ -15,7 +15,7 @@ public class TestController {
   public String mostrarHola(){
     log.info("en el controlador TestController, metodo mostrarHola");
 
-    return  "Hola desplegado desde Websphere Liberty";
+    return  "Hola desplegado desde Websphere Liberty(WAS)";
 
   }
 }

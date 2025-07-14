@@ -1,0 +1,24 @@
+<server description="Servidor Liberty para Spring Boot ">
+    <httpEndpoint id="defaultHttpEndpoint" host="localhost"
+                  httpPort="9080"  httpsPort="9443"   sslRef="defaultSSLConfig"/>
+    <featureManager> <!-- Features necesarias -->
+        <feature>servlet-6.0</feature>
+        <feature>cdi-4.0</feature>
+        <feature>jsonb-3.0</feature>
+        <feature>mpConfig-3.0</feature>
+        <feature>adminCenter-1.0</feature>
+        <feature>restConnector-2.0</feature>
+        <feature>mpMetrics-5.0</feature>
+    </featureManager>
+    <applicationMonitor updateTrigger="mbean"/>
+    <administrator-role>
+        <user>usuario</user> <!-- Define un usuario  -->
+    </administrator-role>
+    <keyStore id="defaultKeyStore" password="password"/>
+    <basicRegistry id="basic" realm="defaultRealm">
+        <user name="usuario" password="password"/>
+    </basicRegistry>
+    <remoteFileAccess>
+        <writeDir>${server.config.dir}</writeDir>
+    </remoteFileAccess>
+</server>

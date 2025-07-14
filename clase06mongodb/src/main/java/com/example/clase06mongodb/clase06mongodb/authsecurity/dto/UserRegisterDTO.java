@@ -1,15 +1,14 @@
-package com.example.clase06mongodb.clase06mongodb.dto;
+package com.example.clase06mongodb.clase06mongodb.authsecurity.dto;
 
 import com.example.clase06mongodb.clase06mongodb.model.enums.Role;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.annotation.Id;
 
 import java.util.Set;
 
@@ -17,21 +16,26 @@ import java.util.Set;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Slf4j
-public class UserDTO {
+public class UserRegisterDTO {
+    private String id;
 
-    @Id
-    private  String id;
+    @NotBlank
+    private String fullName;
 
     @NotBlank
     private String username;
 
     @Email
+    @NotBlank
     private String email;
 
-    @Size(min=8 , max=20)
+    @Size(min = 8, max = 20)
+    @NotBlank
     private String password;
 
-    private Set<Role> roles;
-}
+    @NotEmpty
+    private Set<Role> role;
 
+    @NotBlank
+    private String profileImageUrl;
+}

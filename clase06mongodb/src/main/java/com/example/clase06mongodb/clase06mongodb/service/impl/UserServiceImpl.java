@@ -1,68 +1,103 @@
 package com.example.clase06mongodb.clase06mongodb.service.impl;
 
 import com.example.clase06mongodb.clase06mongodb.dto.UserDTO;
-import com.example.clase06mongodb.clase06mongodb.mapper.UserMapper;
+import com.example.clase06mongodb.clase06mongodb.exceptions.ResourceNotFoundException;
+import com.example.clase06mongodb.clase06mongodb.mapper.GenericMapper;
 import com.example.clase06mongodb.clase06mongodb.model.User;
 import com.example.clase06mongodb.clase06mongodb.repository.UserRepository;
 import com.example.clase06mongodb.clase06mongodb.service.UserService;
+import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.concurrent.DelegatingSecurityContextExecutorService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import static java.util.stream.Collectors.toList;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UserServiceImpl implements UserService {
+    private final UserRepository repo;
+    private final GenericMapper mapper;
 
-  private final UserRepository userRepository;
-  private final UserMapper userMapper;
+    // ✅ Pool de hilos con seguridad delegada
+    private final ExecutorService executor =
+            new DelegatingSecurityContextExecutorService(Executors.newFixedThreadPool(4));
 
-
-  @Override
-  public List<UserDTO> getAllUsers() {
-    return  userRepository.findAll().stream()
-        .map(userMapper::toDTO)
-        .collect(Collectors.toList());
-  }
-
-  @Override
-  public UserDTO createUser(UserDTO userDTO) {
-    // Mapear DTO a entidad
-    User user = userMapper.toEntity(userDTO);
-    // Guardar entidad en la base de datos
-    User savedUser = userRepository.save(user);
-    // Mapear entidad guardada de vuelta a DTO
-    return userMapper.toDTO(savedUser);
-  }
-
-   public Optional<UserDTO> getUserById(String id) {
-    // Buscar entidad y mapear a DTO si está presente
-    return userRepository.findById(id)
-        .map(userMapper::toDTO);
-  }
-
-  @Override
-  public UserDTO updateUser(String id, UserDTO userDTO) {
-    // Obtener la entidad existente
-    User existingUser = userRepository.findById(id)
-        .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
-    // Actualizar valores desde el DTO
-    existingUser.setName(userDTO.getName());
-    existingUser.setUsername(userDTO.getUsername());
-    existingUser.setPassword(userDTO.getPassword());
-    // Guardar cambios y mapear de vuelta a DTO
-    User updatedUser = userRepository.save(existingUser);
-    return userMapper.toDTO(updatedUser);
-  }
-
-  @Override
-  public void deleteUser(String id) {
-    // Intentar borrar la entidad si está presente
-    if (!userRepository.existsById(id)) {
-      throw new RuntimeException("User not found with id: " + id);
+    @Override
+    public UserDTO createUser(UserDTO dto) {
+        User user = mapper.toEntity(dto, User.class);
+        if (repo.existsByUsername(user.getUsername())) {
+            throw new IllegalArgumentException("Username already exists");
+        }
+        repo.save(user);
+        return mapper.toDTO(user, UserDTO.class);
     }
-    userRepository.deleteById(id);
-  }
+
+    @Override
+    public UserDTO getUserById(String id) {
+        return repo.findById(id)
+                .map(user -> mapper.toDTO(user, UserDTO.class))
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con id: " + id));
+    }
+
+    @Override
+    public List<UserDTO> getAllUsers() {
+        return repo.findAll()
+                .stream()
+                .map(user -> mapper.toDTO(user, UserDTO.class))
+                .collect(toList());
+    }
+
+    // ✅ Versión async
+    @Override
+    public CompletableFuture<List<UserDTO>> getAllUsersAsync() {
+        log.info("[ASYNC] Ejecutando getAllUsersAsync");
+        return CompletableFuture.supplyAsync(() -> {
+            log.info("[ASYNC] Hilo: {}", Thread.currentThread().getName());
+            return getAllUsers();
+        }, executor);
+    }
+
+    // ✅ Procesamiento paralelo
+    @Override
+    public void processUsersByIdList(List<String> ids) {
+        log.info("[THREAD] Iniciando procesamiento paralelo de usuarios");
+        for (String id : ids) {
+            executor.submit(() -> {
+                try {
+                    UserDTO user = getUserById(id);
+                    log.info("[THREAD] Usuario procesado: {} - {}", id, user.getUsername());
+                } catch (ResourceNotFoundException e) {
+                    log.warn("[THREAD] Usuario no encontrado: {}", id);
+                }
+            });
+        }
+    }
+
+    @Override
+    public UserDTO updateUser(UserDTO dto) {
+        return repo.findById(dto.getId()).map(u -> {
+            u.setUsername(dto.getUsername());
+            u.setEmail(dto.getEmail());
+            return mapper.toDTO(repo.save(u), UserDTO.class);
+        }).orElse(null);
+    }
+
+    @Override
+    public void deleteUser(String id) {
+        repo.deleteById(id);
+    }
+
+    @PreDestroy
+    public void shutdownExecutor() {
+        log.info("[SHUTDOWN] Cerrando pool de hilos de UserService...");
+        executor.shutdown();
+    }
 }

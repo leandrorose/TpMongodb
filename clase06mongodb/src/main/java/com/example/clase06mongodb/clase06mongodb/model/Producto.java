@@ -1,5 +1,6 @@
 package com.example.clase06mongodb.clase06mongodb.model;
 
+import com.example.clase06mongodb.clase06mongodb.model.enums.Color;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;

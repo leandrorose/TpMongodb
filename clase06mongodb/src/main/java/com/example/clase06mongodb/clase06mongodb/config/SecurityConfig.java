@@ -1,6 +1,6 @@
 package com.example.clase06mongodb.clase06mongodb.config;
 
-import com.example.clase06mongodb.clase06mongodb.authsecurity.JwtAuthFilter;
+import  com.example.clase06mongodb.clase06mongodb.authsecurity.JwtAuthFilter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
@@ -24,46 +24,41 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 
-/*
 @Configuration
-@EnableWebSecurity
-public class SecurityConfig {
-  @Bean
-  public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-    http
-        .csrf(csrf -> csrf.disable())
-        .authorizeHttpRequests(auth -> auth
-            .requestMatchers("/", "/home",  "/api/*", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
-            .anyRequest().authenticated()   )
-        .httpBasic(Customizer.withDefaults()); // Configuración de autenticación básica
-    return http.build();  }
-
-  @Bean
-  public UserDetailsService userDetailsService() {
-    UserDetails user = User.withDefaultPasswordEncoder()
-        .username("user") .password("password")
-        .roles("USER")
-        .build();
-    UserDetails admin = User.withDefaultPasswordEncoder()
-        .username("admin")
-        .password("admin123")
-        .roles("ADMIN")
-        .build();
-    return new InMemoryUserDetailsManager(user, admin);}
-}
-*/@Configuration
 @EnableWebSecurity
 @Slf4j
 @RequiredArgsConstructor
 public class SecurityConfig {
+    /*
+     @Bean
+     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+         http
+             .authorizeHttpRequests(authz -> authz
+                 .requestMatchers(
+                     "/swagger-ui/**",
+                     "/v3/api-docs/**",
+                     "/swagger-resources/**",
+                     "/webjars/**",
+                     "/api/**" // <-- Permite acceso público a la API
+                 ).permitAll()
+                 .anyRequest().authenticated()
+             )
+             .csrf(csrf -> csrf.disable());
+         return http.build();
+     }
 
+
+    @Bean
+    public BCryptPasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }*/
 
   private final JwtAuthFilter jwtAuthFilter;
   private final UserDetailsService userDetailsService;
 
   private static final String[] WHITE_LIST = {
-      "/api/v1/auth/**", "/api/test/**",
-      "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html"
+          "/api/auth/**", "/api/test/**",
+          "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html"
   };
 
   @Bean
@@ -71,14 +66,15 @@ public class SecurityConfig {
     log.info("🛡️ Configurando seguridad");
 
     http
-        .csrf(AbstractHttpConfigurer::disable)
-        .cors(cors -> cors.configurationSource(corsConfig()))
-        .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-        .authorizeHttpRequests(auth -> auth
-            .requestMatchers(WHITE_LIST).permitAll()
-            .anyRequest().authenticated())
-        .authenticationProvider(authProvider())
-        .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+            .csrf(AbstractHttpConfigurer::disable)
+            .cors(cors -> cors.configurationSource(corsConfig()))
+            .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(auth -> auth
+                    .requestMatchers(WHITE_LIST).permitAll()
+                    .requestMatchers("/api/events/**").authenticated()
+                    .anyRequest().authenticated())
+            .authenticationProvider(authProvider())
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
     return http.build();
   }
@@ -99,7 +95,7 @@ public class SecurityConfig {
   @Bean
   public CorsConfigurationSource corsConfig() {
     CorsConfiguration config = new CorsConfiguration();
-    config.setAllowedOrigins(List.of("http://localhost:8080", "http://localhost:9080", "https://localhost:9443", "http://localhost:3000"));
+    config.setAllowedOrigins(List.of("http://localhost:8080", "http://localhost:9080", "https://localhost:9443", "http://localhost:3000","http://localhost:9090"));
     config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
     config.setAllowedHeaders(List.of("*"));
     config.setAllowCredentials(true);
